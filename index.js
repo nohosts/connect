@@ -179,8 +179,6 @@ const tunnel = async (req, options) => {
   }
 };
 
-exports.onClose = onClose;
 exports.restoreHeaders = restoreHeaders;
 exports.request = request;
 exports.tunnel = tunnel;
-exports.hparser = hparser;
