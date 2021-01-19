@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "Nohost connector",
   "scripts": {
-    "lint": "eslint lib",
-    "lintfix": "eslint --fix lib"
+    "lint": "eslint  index.js",
+    "lintfix": "eslint --fix index.js"
   },
   "registry": "https://registry.npmjs.org/@nohost/connect",
   "repository": {
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/nohosts/connect#readme",
   "devDependencies": {
     "babel-eslint": "^10.0.3",
-    "eslint": "^6.4.0",
+    "eslint": "^5.3.0",
     "eslint-config-imweb": "^0.2.19"
   },
   "dependencies": {

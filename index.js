@@ -1,5 +1,6 @@
 const http = require('http');
-const { parse: parseUrl} = require('url');
+const net = require('net');
+const { parse: parseUrl } = require('url');
 const hparser = require('hparser');
 
 const noop = () => {};
@@ -11,18 +12,6 @@ const CLOSED_ERR = new Error('Closed');
 const TIMEOUT_ERR = new Error('Timeout');
 const TIMEOUT = 5000;
 const RETRY_TIMEOUT = 16000;
-
-exports.noop = noop;
-
-const destroy = (req, err) => {
-  if (req) {
-    if (req.destroy) {
-      req.destroy();
-    } else if (req.abort) {
-      req.abort();
-    }
-  }
-};
 
 const _connect = function(options, callback) {
   let socket;
@@ -63,7 +52,7 @@ const _connect = function(options, callback) {
     socket.on('error', handleError);
     socket.once('close', handleError);
   };
-  
+
   handleConnect();
 
   return (err) => socket && socket.destroy(err);
@@ -73,7 +62,10 @@ const onClose = (req, cb) => {
   const execCb = (err) => {
     if (req._hasError) {
       req._hasError = true;
-      cb(err || CLOSED_ERR);
+      req.destroy();
+      if (cb) {
+        cb(err || CLOSED_ERR);
+      }
     }
   };
   req.on('error', execCb);
@@ -82,15 +74,15 @@ const onClose = (req, cb) => {
 
 const parseOptions = (req) => {
   const options = {};
-  const { headers } = req;
-  if (/^\w+:\/\//.test(req.url)) {
-    url = parseUrl(url);
-    options.host = url.host;
-    options.port = url.port;
-  } else if (/^([\w\.-]+):([1-9]\d*)$/.test(req.url)) {
+  const { url, headers } = req;
+  if (/^\w+:\/\//.test(url)) {
+    const opts = parseUrl(url);
+    options.host = opts.hostname;
+    options.port = opts.port;
+  } else if (/^([\w.-]+):([1-9]\d*)$/.test(req.url)) {
     options.host = RegExp.$1;
     options.port = RegExp.$2;
-  } else if (/^([\w\.-]+)(?::([1-9]\d*))?$/.test(headers.host)) {
+  } else if (/^([\w.-]+)(?::([1-9]\d*))?$/.test(headers.host)) {
     options.host = RegExp.$1;
     options.port = RegExp.$2;
   }
@@ -173,20 +165,16 @@ const tunnel = async (req, options) => {
       '\r\n',
     ].join('\r\n'));
     reqSock.pipe(socket).pipe(reqSock);
-    const destroyAll = (e) => {
-      reqSock.destroy(e);
-      socket.destroy(e);
-    };
-    onClose(reqSock, destroyAll);
-    onClose(socket, destroyAll);
+    onClose(reqSock, (e) => socket.destroy(e));
+    onClose(socket, (e) => reqSock.destroy(e));
   } catch (e) {
     const body = e.stack || e.message || '';
     const rawData = [
       'HTTP/1.1 502 Bad Gateway',
       `Content-Length: ${Buffer.byteLength(body)}`,
       '\r\n',
-      body
-    ]
+      body,
+    ];
     reqSock.end(rawData.join('\r\n'));
   }
 };
