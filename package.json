@@ -1,0 +1,33 @@
+{
+  "name": "@nohost/connect",
+  "version": "0.0.0",
+  "description": "Nohost connector",
+  "scripts": {
+    "lint": "eslint lib",
+    "lintfix": "eslint --fix lib"
+  },
+  "registry": "https://registry.npmjs.org/@nohost/connect",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nohosts/connect.git"
+  },
+  "keywords": [
+    "whistle",
+    "nohost",
+    "cluster"
+  ],
+  "author": "avwu <avwu@qq.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nohosts/connect/issues"
+  },
+  "homepage": "https://github.com/nohosts/connect#readme",
+  "devDependencies": {
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.4.0",
+    "eslint-config-imweb": "^0.2.19"
+  },
+  "dependencies": {
+    "hparser": "^0.3.0"
+  }
+}
