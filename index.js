@@ -7,7 +7,6 @@ const noop = () => {};
 const { getRawHeaders, getRawHeaderNames, formatHeaders } = hparser;
 const XFF = 'x-forwarded-for';
 const XWCP = 'x-whistle-client-port';
-const WS_RE = /websocket/i;
 const CLOSED_ERR = new Error('Closed');
 const TIMEOUT_ERR = new Error('Timeout');
 const TIMEOUT = 5000;
@@ -155,12 +154,12 @@ const request = async (req, options) => {
   });
 };
 
-const tunnel = async (req, options) => {
+const tunnel = async (req, options, isWs) => {
   const reqSock = req.socket;
   try {
     const socket = await connect(req, options);
     socket.write([
-      `${WS_RE.test(req.headers.upgrade) ? 'GET' : 'CONNECT'} ${req.url} HTTP/1.1`,
+      `${isWs ? 'GET' : 'CONNECT'} ${req.url} HTTP/1.1`,
       getRawHeaders(restoreHeaders(req)),
       '\r\n',
     ].join('\r\n'));
@@ -179,6 +178,7 @@ const tunnel = async (req, options) => {
   }
 };
 
-exports.restoreHeaders = restoreHeaders;
+exports.getRawHeaders = restoreHeaders;
 exports.request = request;
-exports.tunnel = tunnel;
+exports.tunnel = (req, options) => tunnel(req, options);
+exports.upgrade = (req, options) => tunnel(req, options, true);
