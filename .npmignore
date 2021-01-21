@@ -39,8 +39,5 @@ jspm_packages
 # test
 test
 
-# source
-/src
-/docs
-/deploy.sh
+# config
 /.*

@@ -3,7 +3,7 @@ Nohost 内部处理请求转发的模块
 
 # 安装
 ``` sh
-npm i --save @nohost/connec
+npm i --save @nohost/connect
 ```
 
 # 用法
