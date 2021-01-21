@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Nohost connector",
   "scripts": {
-    "lint": "eslint  index.js",
-    "lintfix": "eslint --fix index.js"
+    "lint": "eslint  index.js test",
+    "lintfix": "eslint --fix index.js test"
   },
   "registry": "https://registry.npmjs.org/@nohost/connect",
   "repository": {

@@ -61,7 +61,9 @@ const onClose = (req, cb) => {
   const execCb = (err) => {
     if (req._hasError) {
       req._hasError = true;
-      req.destroy();
+      if (typeof req.destroy === 'function') {
+        req.destroy();
+      }
       if (cb) {
         cb(err || CLOSED_ERR);
       }
@@ -178,6 +180,7 @@ const tunnel = async (req, options, isWs) => {
   }
 };
 
+exports.onClose = onClose;
 exports.getRawHeaders = restoreHeaders;
 exports.request = request;
 exports.tunnel = (req, options) => tunnel(req, options);
