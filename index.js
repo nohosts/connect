@@ -1,5 +1,6 @@
 const http = require('http');
 const net = require('net');
+const tls = require('tls');
 const { parse: parseUrl } = require('url');
 const hparser = require('hparser');
 
@@ -44,7 +45,8 @@ const _connect = function(options, callback) {
   const handleConnect = () => {
     timer = setTimeout(handleError, retry ? RETRY_TIMEOUT : TIMEOUT);
     try {
-      socket = net.connect(options, execCallback);
+      const module = options.servername ? tls : net;
+      socket = module.connect(options, execCallback);
     } catch (e) {
       return execCallback(e);
     }
@@ -73,23 +75,31 @@ const onClose = (req, cb) => {
   req.once('close', execCb);
 };
 
-const parseOptions = (req) => {
-  const options = {};
+const getDefaultPort = (options) => {
+  return options.servername ? 443 : 80;
+};
+
+const parseOptions = (req, options) => {
+  if (options && options.host && options.port) {
+    return options;
+  }
   const { url, headers } = req;
+  let host;
+  let port;
   if (/^\w+:\/\//.test(url)) {
     const opts = parseUrl(url);
-    options.host = opts.hostname;
-    options.port = opts.port;
+    host = opts.hostname;
+    port = opts.port;
   } else if (/^([\w.-]+):([1-9]\d*)$/.test(req.url)) {
-    options.host = RegExp.$1;
-    options.port = RegExp.$2;
+    host = RegExp.$1;
+    port = RegExp.$2;
   } else if (/^([\w.-]+)(?::([1-9]\d*))?$/.test(headers.host)) {
-    options.host = RegExp.$1;
-    options.port = RegExp.$2;
+    host = RegExp.$1;
+    port = RegExp.$2;
   }
-  if (!options.port) {
-    options.port = (headers['x-whistle-https-request'] || headers['x-forwarded-proto'] === 'https') ? 443 : 80;
-  }
+  options = Object.assign({}, options);
+  options.host = options.host || host;
+  options.port = options.port || port || getDefaultPort(options);
   return options;
 };
 
@@ -97,7 +107,7 @@ const connect = (req, options) => {
   if (req._hasError) {
     return Promise.reject(CLOSED_ERR);
   }
-  options = options || parseOptions(req);
+  options = parseOptions(req, options);
   return new Promise((resolve, reject) => {
     const _destroy = _connect(options, (err, socket) => {
       if (err) {
