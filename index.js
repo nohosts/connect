@@ -139,7 +139,7 @@ const getClientIp = (req) => {
 
 const restoreHeaders = (req) => {
   const { headers, rawHeaders } = req;
-  if (req.writeHead) {
+  if (!req.writeHead && !req.isResObject) {
     const ip = getClientIp(req);
     const port = getClientPort(req);
     if (ip) {

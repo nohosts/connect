@@ -1,6 +1,6 @@
 {
   "name": "@nohost/connect",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Nohost connector",
   "scripts": {
     "lint": "eslint  index.js test",
