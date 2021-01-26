@@ -4,7 +4,6 @@ const tls = require('tls');
 const { parse: parseUrl } = require('url');
 const hparser = require('hparser');
 
-const noop = () => {};
 const { getRawHeaders, getRawHeaderNames, formatHeaders } = hparser;
 const XFF = 'x-forwarded-for';
 const XWCP = 'x-whistle-client-port';
@@ -12,6 +11,26 @@ const CLOSED_ERR = new Error('Closed');
 const TIMEOUT_ERR = new Error('Timeout');
 const TIMEOUT = 5000;
 const RETRY_TIMEOUT = 16000;
+
+const onClose = (req, cb) => {
+  const execCb = (err) => {
+    if (!req._hasError) {
+      req._hasError = true;
+      if (req.destroy) {
+        req.destroy();
+      }
+    }
+    if (cb) {
+      cb(err || CLOSED_ERR);
+      cb = null;
+    }
+  };
+  if (req._hasError) {
+    return cb && cb(CLOSED_ERR);
+  }
+  req.on('error', execCb);
+  req.once('close', execCb);
+};
 
 const _connect = function(options, callback) {
   let socket;
@@ -32,9 +51,6 @@ const _connect = function(options, callback) {
       return;
     }
     err = err || (this === socket ? CLOSED_ERR : TIMEOUT_ERR);
-    socket.removeAllListeners();
-    socket.on('error', noop);
-    socket.destroy(err);
     if (retry) {
       return execCallback(err);
     }
@@ -50,8 +66,7 @@ const _connect = function(options, callback) {
     } catch (e) {
       return execCallback(e);
     }
-    socket.on('error', handleError);
-    socket.once('close', handleError);
+    onClose(socket, handleError);
   };
 
   handleConnect();
@@ -63,25 +78,6 @@ const _connect = function(options, callback) {
       socket.destroy(err);
     }
   };
-};
-
-const onClose = (req, cb) => {
-  const execCb = (err) => {
-    if (req._hasError) {
-      req._hasError = true;
-      if (typeof req.destroy === 'function') {
-        req.destroy();
-      }
-      if (cb) {
-        cb(err || CLOSED_ERR);
-      }
-    }
-  };
-  if (req._hasError) {
-    return cb && cb(CLOSED_ERR);
-  }
-  req.on('error', execCb);
-  req.once('close', execCb);
 };
 
 const getDefaultPort = (options) => {
