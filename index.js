@@ -71,6 +71,10 @@ const onClose = (req, cb) => {
       }
     }
   };
+  if (req._hasError) {
+    req._hasError = false;
+    return execCb();
+  }
   req.on('error', execCb);
   req.once('close', execCb);
 };
