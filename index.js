@@ -56,7 +56,13 @@ const _connect = function(options, callback) {
 
   handleConnect();
 
-  return (err) => socket && socket.destroy(err);
+  return (err) => {
+    done = true;
+    clearTimeout(timer);
+    if (socket) {
+      socket.destroy(err);
+    }
+  };
 };
 
 const onClose = (req, cb) => {
