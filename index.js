@@ -21,12 +21,12 @@ const onClose = (req, cb) => {
       }
     }
     if (cb) {
-      cb(err || CLOSED_ERR);
+      cb(err);
       cb = null;
     }
   };
   if (req._hasError) {
-    return cb && cb(CLOSED_ERR);
+    return cb && cb();
   }
   req.on('error', execCb);
   req.once('close', execCb);
@@ -45,12 +45,12 @@ const _connect = function(options, callback) {
       callback(err, socket);
     }
   };
-  const handleError = function(err) {
+  const handleError = (err) => {
     clearTimeout(timer);
     if (done) {
       return;
     }
-    err = err || (this === socket ? CLOSED_ERR : TIMEOUT_ERR);
+    err = err || TIMEOUT_ERR;
     if (retry) {
       return execCallback(err);
     }
@@ -66,7 +66,7 @@ const _connect = function(options, callback) {
     } catch (e) {
       return execCallback(e);
     }
-    onClose(socket, handleError);
+    onClose(socket, err => handleError(err || CLOSED_ERR));
   };
 
   handleConnect();
@@ -122,7 +122,7 @@ const connect = (req, options) => {
     });
     onClose(req, (err) => {
       _destroy(err);
-      reject(err);
+      reject(err || CLOSED_ERR);
     });
   });
 };
@@ -182,7 +182,8 @@ const tunnel = async (req, options, isWs) => {
     ].join('\r\n'));
     reqSock.pipe(socket).pipe(reqSock);
     onClose(reqSock, (e) => socket.destroy(e));
-    onClose(socket, (e) => reqSock.destroy(e));
+    // 出错才可以把客户端连接销毁，否则会有问题
+    onClose(socket, (e) => e && reqSock.destroy(e));
   } catch (e) {
     const body = e.stack || e.message || '';
     const rawData = [
