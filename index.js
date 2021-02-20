@@ -12,7 +12,15 @@ const TIMEOUT_ERR = new Error('Timeout');
 const TIMEOUT = 5000;
 const RETRY_TIMEOUT = 16000;
 
-const onClose = (req, cb) => {
+const isFinished = (req) => {
+  if (req.finished) {
+    return true;
+  }
+  const { socket } = req;
+  return socket && (socket.destroyed || !socket.writable);
+};
+
+const onClose = (req, callback) => {
   const execCb = (err) => {
     if (!req._hasError) {
       req._hasError = true;
@@ -20,13 +28,14 @@ const onClose = (req, cb) => {
         req.destroy();
       }
     }
-    if (cb) {
-      cb(err);
-      cb = null;
+    if (callback) {
+      callback(err);
+      callback = null;
     }
   };
-  if (req._hasError) {
-    return cb && cb();
+  if (req._hasError || isFinished(req)) {
+    req._hasError = true;
+    return execCb();
   }
   req.on('error', execCb);
   req.once('close', execCb);
