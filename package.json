@@ -1,6 +1,6 @@
 {
   "name": "@nohost/connect",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "处理 Nohost 内部请求转发的模块",
   "scripts": {
     "lint": "eslint  index.js test",
