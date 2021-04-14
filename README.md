@@ -21,3 +21,6 @@ const { getRawHeaders, request, tunnel, upgrade, onClose } = require('@nohost/co
 3. `tunnel(req, options)`：代理隧道代理
 4. `upgrade(req, options)`：转发 WebSocket 请求
 5. `onClose(req, cb)`：监听请求关闭
+
+# 例子
+参考：https://github.com/nohosts/router/blob/master/lib/connect.js
