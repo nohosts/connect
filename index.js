@@ -117,7 +117,7 @@ const parseOptions = (req, options) => {
   return options;
 };
 
-const connect = (req, options) => {
+const connect = (req, options, res) => {
   if (req._hasError) {
     return Promise.reject(CLOSED_ERR);
   }
@@ -129,7 +129,7 @@ const connect = (req, options) => {
       }
       resolve(socket);
     });
-    onClose(req, (err) => {
+    onClose(res || req, (err) => {
       _destroy(err);
       reject(err || CLOSED_ERR);
     });
@@ -166,8 +166,8 @@ const restoreHeaders = (req) => {
   return formatHeaders(headers, rawHeaders && getRawHeaderNames(rawHeaders));
 };
 
-const request = async (req, options) => {
-  const socket = await connect(req, options);
+const request = async (req, res, options) => {
+  const socket = await connect(req, options, res);
   return new Promise((resolve, reject) => {
     const client = http.request({
       path: req.url || '/',
@@ -205,7 +205,6 @@ const tunnel = async (req, options, isWs) => {
   }
 };
 
-exports.onClose = onClose;
 exports.getRawHeaders = restoreHeaders;
 exports.request = request;
 exports.tunnel = (req, options) => tunnel(req, options);

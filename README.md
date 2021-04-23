@@ -8,7 +8,7 @@ npm i --save @nohost/connect
 
 # 用法
 ``` js
-const { getRawHeaders, request, tunnel, upgrade, onClose } = require('@nohost/connect');
+const { getRawHeaders, request, tunnel, upgrade } = require('@nohost/connect');
 ```
 
 # API
@@ -20,7 +20,6 @@ const { getRawHeaders, request, tunnel, upgrade, onClose } = require('@nohost/co
     - svrRes: 响应对象
 3. `tunnel(req, options)`：代理隧道代理
 4. `upgrade(req, options)`：转发 WebSocket 请求
-5. `onClose(req, cb)`：监听请求关闭
 
 # 例子
 参考：https://github.com/nohosts/router/blob/master/lib/connect.js
