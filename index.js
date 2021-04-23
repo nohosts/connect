@@ -203,6 +203,7 @@ const tunnel = async (req, options, isWs) => {
   }
 };
 
+exports.onClose = onClose;
 exports.getRawHeaders = restoreHeaders;
 exports.request = request;
 exports.tunnel = (req, options) => tunnel(req, options);
