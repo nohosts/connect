@@ -12,20 +12,26 @@ const TIMEOUT_ERR = new Error('Timeout');
 const TIMEOUT = 5000;
 const RETRY_TIMEOUT = 16000;
 
+const isFinished = (req) => {
+  if (req.finished) {
+    return true;
+  }
+  const socket = req.socket || req;
+  return socket && (socket.destroyed || socket.writable === false);
+};
+
 const onClose = (req, callback) => {
   const execCb = (err) => {
     if (!req._hasError) {
       req._hasError = true;
-      if (req.destroy) {
-        req.destroy();
-      }
+      req.destroy();
     }
     if (callback) {
       callback(err);
       callback = null;
     }
   };
-  if (req._hasError) {
+  if (req._hasError || isFinished(req)) {
     req._hasError = true;
     return execCb();
   }
@@ -162,6 +168,8 @@ const request = async (req, res, options) => {
   req.on('error', (err) => {
     if (!req._hasError) {
       req._hasError = true;
+      res._hasError = true;
+      res.destroy();
       res.emit('error', err);
     }
   });
