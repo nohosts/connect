@@ -165,12 +165,12 @@ const restoreHeaders = (req) => {
 };
 
 const request = async (req, res, options) => {
-  req.on('error', (err) => {
+  req.on('error', () => {
     if (!req._hasError) {
       req._hasError = true;
       res._hasError = true;
       res.destroy();
-      res.emit('error', err);
+      res.emit('close');
     }
   });
   const socket = await connect(req, options, res);
@@ -196,9 +196,9 @@ const tunnel = async (req, options, isWs) => {
       '\r\n',
     ].join('\r\n'));
     reqSock.pipe(socket).pipe(reqSock);
-    onClose(reqSock, (e) => socket.destroy(e));
+    onClose(reqSock, () => socket.destroy());
     // 出错才可以把客户端连接销毁，否则会有问题
-    onClose(socket, (e) => e && reqSock.destroy(e));
+    onClose(socket, (e) => e && reqSock.destroy());
   } catch (e) {
     const body = e.stack || e.message || '';
     const rawData = [
