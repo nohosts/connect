@@ -175,13 +175,7 @@ const request = async (req, res, options) => {
     }
   });
   const socket = await connect(req, options, res);
-  onClose(socket, (e) => {
-    if (e) {
-      res.destroy();
-    } else {
-      res.end();
-    }
-  });
+  onClose(socket, (e) => e && res.destroy());
   return new Promise((resolve, reject) => {
     const client = http.request({
       path: req.url || '/',
@@ -206,13 +200,7 @@ const tunnel = async (req, options, isWs) => {
     reqSock.pipe(socket).pipe(reqSock);
     onClose(reqSock, () => socket.destroy());
     // 出错才可以把客户端连接销毁，否则会有问题
-    onClose(socket, (e) => {
-      if (e) {
-        reqSock.destroy();
-      } else {
-        reqSock.end();
-      }
-    });
+    onClose(socket, (e) => e && reqSock.destroy());
   } catch (e) {
     const body = e.stack || e.message || '';
     const rawData = [
