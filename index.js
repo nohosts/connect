@@ -24,6 +24,7 @@ const onClose = (req, callback) => {
   const execCb = (err) => {
     if (!req._hasError) {
       req._hasError = true;
+      req._errorObj = err;
       req.destroy();
     }
     if (callback) {
@@ -33,7 +34,7 @@ const onClose = (req, callback) => {
   };
   if (req._hasError || isFinished(req)) {
     req._hasError = true;
-    return execCb();
+    return execCb(req._errorObj);
   }
   req.on('error', execCb);
   req.once('close', execCb);
@@ -78,11 +79,11 @@ const _connect = function(options, callback) {
 
   handleConnect();
 
-  return (err) => {
+  return () => {
     done = true;
     clearTimeout(timer);
     if (socket) {
-      socket.destroy(err);
+      socket.destroy();
     }
   };
 };
@@ -128,7 +129,7 @@ const connect = (req, options, res) => {
       resolve(socket);
     });
     onClose(res || req, (err) => {
-      _destroy(err);
+      _destroy();
       reject(err || CLOSED_ERR);
     });
   });
