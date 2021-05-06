@@ -214,5 +214,9 @@ const tunnel = async (req, options, isWs) => {
 exports.onClose = onClose;
 exports.getRawHeaders = restoreHeaders;
 exports.request = request;
-exports.tunnel = (req, options) => tunnel(req, options);
+exports.tunnel = (req, options) => {
+  delete req.headers.upgrade;
+  delete req.headers.connection;
+  return tunnel(req, options);
+};
 exports.upgrade = (req, options) => tunnel(req, options, true);
