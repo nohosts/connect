@@ -1,6 +1,6 @@
 {
   "name": "@nohost/connect",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "处理请求转发的模块",
   "scripts": {
     "lint": "eslint  index.js test",
