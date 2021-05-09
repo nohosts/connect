@@ -37,6 +37,7 @@ const onClose = (req, callback) => {
     return execCb(req._errorObj);
   }
   req.on('error', execCb);
+  req.once('timeout', () => execCb(TIMEOUT_ERR));
   req.once('close', execCb);
 };
 
