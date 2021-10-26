@@ -223,3 +223,4 @@ exports.tunnel = (req, options) => {
   return tunnel(req, options);
 };
 exports.upgrade = (req, options) => tunnel(req, options, true);
+exports.connect = connect;
