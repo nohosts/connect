@@ -28,13 +28,13 @@ const onClose = (req, callback) => {
       req.destroy();
     }
     if (callback) {
-      callback(err);
+      callback(req._errorObj || err);
       callback = null;
     }
   };
   if (req._hasError || isFinished(req)) {
     req._hasError = true;
-    return execCb(req._errorObj);
+    return execCb();
   }
   req.on('error', execCb);
   req.once('timeout', () => execCb(TIMEOUT_ERR));
