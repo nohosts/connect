@@ -75,7 +75,7 @@ const _connect = function(options, callback) {
     } catch (e) {
       return execCallback(e);
     }
-    onClose(socket, err => handleError(err || CLOSED_ERR));
+    onClose(socket, err => err && handleError(err));
   };
 
   handleConnect();
