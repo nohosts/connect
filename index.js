@@ -193,15 +193,39 @@ const tunnel = async (req, options, isWs) => {
   const reqSock = req.socket;
   try {
     const socket = await connect(req, options);
-    socket.write([
-      `${isWs ? 'GET' : 'CONNECT'} ${req.url} HTTP/1.1`,
-      getRawHeaders(restoreHeaders(req)),
-      '\r\n',
-    ].join('\r\n'));
-    reqSock.pipe(socket).pipe(reqSock);
+    const handleConnError = (e) => e && reqSock.destroy();
     onClose(reqSock, () => socket.destroy());
     // 出错才可以把客户端连接销毁，否则会有问题
-    onClose(socket, (e) => e && reqSock.destroy());
+    onClose(socket, handleConnError);
+    if (req.isEstablished && !isWs) {
+      const client = http.request({
+        method: 'CONNECT',
+        agent: null,
+        createConnection: () => socket,
+        path: req.url,
+        headers: restoreHeaders(req),
+      });
+      onClose(client, handleConnError);
+      client.once('connect', (svrRes) => {
+        const { statusCode } = svrRes;
+        if (statusCode !== 200) {
+          const err = new Error(`Tunneling socket could not be established, statusCode=${statusCode}`);
+          err.statusCode = statusCode;
+          socket.destroy();
+          socket.emit('error', err);
+          return;
+        }
+        reqSock.pipe(socket).pipe(reqSock);
+      });
+      client.end();
+    } else {
+      socket.write([
+        `${isWs ? 'GET' : 'CONNECT'} ${req.url} HTTP/1.1`,
+        getRawHeaders(restoreHeaders(req)),
+        '\r\n',
+      ].join('\r\n'));
+      reqSock.pipe(socket).pipe(reqSock);
+    }
   } catch (e) {
     const body = e.stack || e.message || '';
     const rawData = [
