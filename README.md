@@ -1,5 +1,5 @@
 # connect
-> 该项目已经废弃，请用 https://github.com/nohosts/router 代替，router 不仅包含 connect 以下功能，还支持更多的功能
+> 该项目已经废弃，请用 https://github.com/nohosts/router 代替，router 不仅支持 connect 所有功能，还支持转发到集群等更多的功能
 
 Nohost 内部处理请求转发的模块
 
